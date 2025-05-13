@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: docker_demo
+      MYSQL_USER: testuser
+      MYSQL_PASSWORD:  testpass
+    ports:
+      - "3307:3306"
+    volumes:
+#      - mysql_data:/var/lib/mysql
+      - ./mysql/data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - docker-app-network
+
+  springboot-app:
+    container_name: springboot-container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+    ports:
+      - "9092:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/docker_demo  # also use can 3307
+      SPRING_DATASOURCE_USERNAME: testuser
+      SPRING_DATASOURCE_PASSWORD: testpass
+    networks:
+      - docker-app-network
+
+volumes:
+  mysql_dataa:
+
+networks:
+  docker-app-network:
+
+
+
+# if using mongo
+#  mongodb:
+#    image: mongo:7.0.5
+#    #    container_name: mongodb
+#    container_name: demo_docker_container13
+#    ports:
+#      - "3309:3312"
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: root
+#      MONGO_INITDB_ROOT_PASSWORD: password
+#      MONGO_INITDB_DATABASE: product-service
+#    volumes:
+#      - ./data:/datadb
